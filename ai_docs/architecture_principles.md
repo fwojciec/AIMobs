@@ -6,12 +6,14 @@ This document outlines the architectural principles and patterns used in the AIM
 
 ## Core Architectural Philosophy
 
-We follow **Ben Johnson's Standard Package Layout** principles combined with **Clean Architecture** concepts and **Michael Feathers' Seam Pattern** to create a system that is:
+We follow **layered architecture** principles with **clear separation of concerns** and **dependency inversion** to create a system that is:
 
 - **Testable** - Every component can be tested in isolation via interfaces
 - **Extensible** - New features fit naturally without architectural changes  
 - **Maintainable** - Clear separation of concerns and dependency flow
-- **Enterprise-Ready** - Patterns used by large-scale systems
+- **Modular** - Well-defined boundaries between different system concerns
+
+The core principle is **interface-first development** where we define contracts (interfaces) before implementations, enabling easy testing and flexibility.
 
 ### Critical Design Rule: Interface-First Development
 
@@ -32,9 +34,9 @@ public class WebSocketManager {
 
 ## Package Layout Structure
 
-### Standard Package Layout Principles
+### Package Layout Principles
 
-Following Ben Johnson's approach, our package structure enforces unidirectional dependencies:
+Our package structure enforces unidirectional dependencies and clear layer boundaries:
 
 ```
 com.aimobs.entity.ai/              (Root Package)
@@ -489,7 +491,7 @@ If any red flags are present, **stop coding and fix the design first.**
 ## References and Further Reading
 
 - **Ben Johnson's Standard Package Layout:** [go package layout](https://medium.com/@benbjohnson/standard-package-layout-7cdbc8391fc1)
-- **Clean Architecture by Robert C. Martin**
+- **Ports and Adapters Architecture (Hexagonal Architecture)**
 - **Working Effectively with Legacy Code by Michael Feathers**
 - **Test-Driven Development by Kent Beck**
 - **SOLID Principles by Robert C. Martin**
