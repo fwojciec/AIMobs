@@ -1,0 +1,153 @@
+plugins {
+    id 'fabric-loom' version '1.4-SNAPSHOT'
+    id 'maven-publish'
+    id 'java'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    maven {
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
+    }
+}
+
+loom {
+    splitEnvironmentSourceSets()
+
+    mods {
+        aimobs {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+        }
+    }
+
+    runs {
+        datagen {
+            inherit server
+            name "Data Generation"
+            vmArg "-Dfabric-api.datagen"
+            vmArg "-Dfabric-api.datagen.output-dir=${file("src/main/generated")}"
+            vmArg "-Dfabric-api.datagen.modid=aimobs"
+
+            runDir "build/datagen"
+        }
+
+    }
+}
+
+sourceSets {
+    test {
+        compileClasspath += main.compileClasspath
+        runtimeClasspath += main.runtimeClasspath
+    }
+    
+    testmod {
+        compileClasspath += main.compileClasspath
+        runtimeClasspath += main.runtimeClasspath
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // WebSocket and JSON dependencies
+    implementation 'org.java-websocket:Java-WebSocket:1.5.3'
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    // Testing dependencies
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testImplementation 'org.mockito:mockito-core:5.12.0'  // Latest version with better Java 17+ support
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+    testImplementation 'org.awaitility:awaitility:4.2.0'
+    
+    // WebSocket and JSON dependencies (for networking tests)
+    testImplementation 'org.java-websocket:Java-WebSocket:1.5.3'
+    testImplementation 'com.google.code.gson:gson:2.10.1'
+    
+    // Test mod dependencies
+    testmodImplementation sourceSets.main.output
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events = ["passed", "skipped", "failed"]
+        exceptionFormat = "full"
+    }
+    
+    // Separate unit tests from integration tests
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+    
+    // Standard module access for Mockito on Java 21
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
+            '--add-opens=java.base/java.util=ALL-UNNAMED'
+    
+    // Suppress Gradle deprecation warnings from Fabric Loom
+    systemProperty 'gradle.deprecation.log', 'false'
+    
+    // Prevent parallel execution to avoid WebSocket port conflicts
+    maxParallelForks = 1
+}
+
+// Integration test task
+task integrationTest(type: Test) {
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    
+    // Standard module access for Mockito on Java 21
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
+            '--add-opens=java.base/java.util=ALL-UNNAMED'
+    
+    systemProperty 'fabric.development', 'true'
+    
+    testLogging {
+        events = ["passed", "skipped", "failed"]
+        exceptionFormat = "full"
+    }
+}
+
+// Test categories
+tasks.withType(Test) {
+    systemProperty 'junit.jupiter.tag.unit', 'fast,isolated'
+    systemProperty 'junit.jupiter.tag.integration', 'slow,fabric'
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}"}
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+}

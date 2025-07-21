@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "aimobs",
+  "version": "${version}",
+  "name": "AI Mobs Controller",
+  "description": "AI-powered voice-controlled Minecraft mob controller",
+  "authors": [
+    "AIMobs Team"
+  ],
+  "contact": {
+    "homepage": "https://github.com/aimobs/controller",
+    "sources": "https://github.com/aimobs/controller"
+  },
+  "license": "MIT",
+  "icon": "assets/aimobs/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.aimobs.AiMobsMod"
+    ],
+    "client": [
+      "com.aimobs.AiMobsClient"
+    ]
+  },
+  "mixins": [
+    "aimobs.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.3",
+    "minecraft": "~1.20.4",
+    "java": ">=17",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
