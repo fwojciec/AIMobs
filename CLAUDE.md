@@ -26,7 +26,7 @@ AIMobs is a Minecraft Fabric mod that creates AI-powered voice-controlled mob en
 
 ## Architecture Overview
 
-The project follows **Clean Architecture** with **Standard Package Layout** principles:
+The project follows **Ports and Adapters Architecture** with **Standard Package Layout** principles:
 
 ### Core Layers
 - **Root Package (`entity.ai/`)**: Service interfaces and contracts
