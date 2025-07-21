@@ -178,7 +178,7 @@ The project follows a ports and adapters architecture with clear separation of c
 
 ## License
 
-[Add your license information here]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
