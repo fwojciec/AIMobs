@@ -2,8 +2,10 @@ package com.aimobs.entity.ai.application;
 
 import com.aimobs.entity.ai.core.AICommand;
 import com.aimobs.entity.ai.core.AIState;
+import com.aimobs.entity.ai.FeedbackService;
 
 import java.util.Queue;
+import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
@@ -21,9 +23,17 @@ public class CommandProcessor implements CommandProcessorService {
     private AIState currentState = AIState.IDLE;
     private final Queue<AICommand> commandQueue;
     private AICommand currentCommand;
+    private final FeedbackService feedbackService;
+    private final UUID wolfId;
     
     public CommandProcessor(Queue<AICommand> commandQueue) {
+        this(commandQueue, null, null);
+    }
+    
+    public CommandProcessor(Queue<AICommand> commandQueue, FeedbackService feedbackService, UUID wolfId) {
         this.commandQueue = commandQueue;
+        this.feedbackService = feedbackService;
+        this.wolfId = wolfId;
         LOGGER.log(Level.INFO, "CommandProcessor created with queue: " + commandQueue.getClass().getSimpleName());
     }
     
@@ -34,6 +44,12 @@ public class CommandProcessor implements CommandProcessorService {
         }
         
         LOGGER.log(Level.INFO, "Queueing command: " + command.getClass().getSimpleName());
+        
+        // Trigger feedback for command received
+        if (feedbackService != null && wolfId != null) {
+            feedbackService.onCommandReceived(wolfId, command);
+        }
+        
         this.commandQueue.offer(command);
         this.currentState = AIState.BUSY;
         LOGGER.log(Level.INFO, "Command queue size after adding: " + this.commandQueue.size());

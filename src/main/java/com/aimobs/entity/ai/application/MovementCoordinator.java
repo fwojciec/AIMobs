@@ -2,10 +2,13 @@ package com.aimobs.entity.ai.application;
 
 import com.aimobs.entity.ai.MovementService;
 import com.aimobs.entity.ai.PathfindingService;
+import com.aimobs.entity.ai.FeedbackService;
 import com.aimobs.entity.ai.core.EntityActions;
 import com.aimobs.entity.ai.core.MovementState;
 import com.aimobs.entity.ai.core.MovementTarget;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.Vec3d;
+import java.util.UUID;
 
 /**
  * Application service implementing movement coordination logic.
@@ -15,14 +18,22 @@ public class MovementCoordinator implements MovementService {
     
     private final EntityActions entityActions;
     private final PathfindingService pathfindingService;
+    private final FeedbackService feedbackService;
+    private final UUID wolfId;
     
     private MovementState currentState = MovementState.IDLE;
     private MovementTarget currentTarget = null;
     private PlayerEntity followingPlayer = null;
 
     public MovementCoordinator(EntityActions entityActions, PathfindingService pathfindingService) {
+        this(entityActions, pathfindingService, null, null);
+    }
+
+    public MovementCoordinator(EntityActions entityActions, PathfindingService pathfindingService, FeedbackService feedbackService, UUID wolfId) {
         this.entityActions = entityActions;
         this.pathfindingService = pathfindingService;
+        this.feedbackService = feedbackService;
+        this.wolfId = wolfId;
     }
 
     @Override
@@ -33,6 +44,13 @@ public class MovementCoordinator implements MovementService {
         
         System.out.println("[AIMobs] MovementCoordinator.moveTo called - target: " + target + ", current pos: " + entityActions.getPosition());
         
+        // Trigger feedback for movement start
+        if (feedbackService != null && wolfId != null) {
+            feedbackService.onCommandExecuting(wolfId, "move");
+            Vec3d targetPos = target.getPosition();
+            feedbackService.onMovementStarted(wolfId, targetPos.x, targetPos.y, targetPos.z);
+        }
+        
         // Stop any current movement
         stopCurrentMovement();
         
@@ -42,6 +60,11 @@ public class MovementCoordinator implements MovementService {
         if (!canReach) {
             currentState = MovementState.PATHFINDING_FAILED;
             System.out.println("[AIMobs] MovementCoordinator setting state to PATHFINDING_FAILED");
+            
+            // Trigger failure feedback
+            if (feedbackService != null && wolfId != null) {
+                feedbackService.onCommandFailed(wolfId, "move", "Target unreachable");
+            }
             return;
         }
         
@@ -58,6 +81,11 @@ public class MovementCoordinator implements MovementService {
     public void followPlayer(PlayerEntity player) {
         if (player == null) {
             return;
+        }
+        
+        // Trigger feedback for follow command
+        if (feedbackService != null && wolfId != null) {
+            feedbackService.onCommandExecuting(wolfId, "follow");
         }
         
         // Stop any current movement
@@ -127,10 +155,20 @@ public class MovementCoordinator implements MovementService {
                 // Successfully reached target
                 currentState = MovementState.IDLE;
                 currentTarget = null;
+                
+                // Trigger success feedback
+                if (feedbackService != null && wolfId != null) {
+                    feedbackService.onCommandCompleted(wolfId, "move");
+                }
             } else if (!pathfindingService.isMoving()) {
                 // Stopped moving but didn't reach target - likely failed
                 currentState = MovementState.PATHFINDING_FAILED;
                 currentTarget = null;
+                
+                // Trigger failure feedback
+                if (feedbackService != null && wolfId != null) {
+                    feedbackService.onCommandFailed(wolfId, "move", "Movement interrupted");
+                }
             }
         }
     }

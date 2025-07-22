@@ -123,5 +123,10 @@ public class FakeEntityResolverService implements EntityResolverService {
         public String getEntityType() {
             return entityType;
         }
+        
+        @Override
+        public java.util.UUID getEntityUuid() {
+            return java.util.UUID.randomUUID();
+        }
     }
 }

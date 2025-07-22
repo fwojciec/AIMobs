@@ -2,6 +2,7 @@ package com.aimobs.entity.ai.core;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.Vec3d;
+import java.util.UUID;
 
 /**
  * Simple implementation of TargetEntity that wraps any LivingEntity.
@@ -38,6 +39,11 @@ public class LivingEntityTarget implements TargetEntity {
     @Override
     public String getEntityType() {
         return entity != null ? entity.getType().toString() : "unknown";
+    }
+    
+    @Override
+    public UUID getEntityUuid() {
+        return entity != null ? entity.getUuid() : UUID.randomUUID();
     }
     
     /**

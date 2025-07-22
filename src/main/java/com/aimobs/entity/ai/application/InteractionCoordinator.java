@@ -2,12 +2,14 @@ package com.aimobs.entity.ai.application;
 
 import com.aimobs.entity.ai.InteractionService;
 import com.aimobs.entity.ai.MovementService;
+import com.aimobs.entity.ai.FeedbackService;
 import com.aimobs.entity.ai.core.*;
 import com.aimobs.entity.ai.infrastructure.AttackTargetGoal;
 import com.aimobs.entity.ai.infrastructure.CollectItemsGoal;
 import com.aimobs.entity.ai.infrastructure.DefendAreaGoal;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import java.util.UUID;
 
 /**
  * Application layer implementation of InteractionService.
@@ -23,6 +25,8 @@ public class InteractionCoordinator implements InteractionService {
     private final EntityActions entityActions;
     private final InventoryActions inventoryActions;
     private final MovementService movementService;
+    private final FeedbackService feedbackService;
+    private final UUID wolfId;
     
     private AIState currentState = AIState.IDLE;
     private Vec3d currentTargetPosition;
@@ -30,15 +34,28 @@ public class InteractionCoordinator implements InteractionService {
     
     public InteractionCoordinator(EntityActions entityActions, InventoryActions inventoryActions, 
                                 MovementService movementService) {
+        this(entityActions, inventoryActions, movementService, null, null);
+    }
+    
+    public InteractionCoordinator(EntityActions entityActions, InventoryActions inventoryActions, 
+                                MovementService movementService, FeedbackService feedbackService, UUID wolfId) {
         this.entityActions = entityActions;
         this.inventoryActions = inventoryActions;
         this.movementService = movementService;
+        this.feedbackService = feedbackService;
+        this.wolfId = wolfId;
     }
     
     @Override
     public void attackTarget(TargetEntity target) {
         if (target == null || !target.isAlive()) {
             return;
+        }
+        
+        // Trigger feedback for attack command
+        if (feedbackService != null && wolfId != null) {
+            feedbackService.onCommandExecuting(wolfId, "attack");
+            feedbackService.onAttackStarted(wolfId, target.getEntityUuid());
         }
         
         stopAllInteractions();
@@ -60,6 +77,12 @@ public class InteractionCoordinator implements InteractionService {
     public void collectItems(String itemType, double radius, int maxItems) {
         if (itemType == null || itemType.trim().isEmpty() || radius <= 0) {
             return;
+        }
+        
+        // Trigger feedback for collection command
+        if (feedbackService != null && wolfId != null) {
+            feedbackService.onCommandExecuting(wolfId, "collect");
+            feedbackService.onCollectionStarted(wolfId, itemType);
         }
         
         stopAllInteractions();

@@ -9,6 +9,10 @@ import com.aimobs.entity.ai.application.TargetResolver;
 import com.aimobs.entity.ai.application.WolfInventoryManager;
 import com.aimobs.entity.ai.application.EntityLifecycleCoordinator;
 import com.aimobs.entity.ai.application.CommandRouter;
+import com.aimobs.entity.ai.application.FeedbackCoordinator;
+import com.aimobs.entity.ai.application.ParticleCoordinator;
+import com.aimobs.entity.ai.application.AudioCoordinator;
+import com.aimobs.entity.ai.application.StatusDisplayCoordinator;
 import com.aimobs.entity.ai.core.AICommand;
 import com.aimobs.entity.ai.core.EntityActions;
 import com.aimobs.entity.ai.core.InventoryActions;
@@ -16,6 +20,12 @@ import com.aimobs.entity.ai.infrastructure.MinecraftPathfindingService;
 import com.aimobs.entity.ai.infrastructure.MinecraftAiPersistenceAdapter;
 import com.aimobs.entity.ai.infrastructure.MinecraftWorldEventHandler;
 import com.aimobs.entity.ai.infrastructure.MinecraftEntityLookupService;
+import com.aimobs.entity.ai.infrastructure.MinecraftParticleAdapter;
+import com.aimobs.entity.ai.infrastructure.MinecraftAudioAdapter;
+import com.aimobs.entity.ai.infrastructure.MinecraftStatusDisplayAdapter;
+import com.aimobs.entity.ai.infrastructure.ParticleAdapter;
+import com.aimobs.entity.ai.infrastructure.AudioAdapter;
+import com.aimobs.entity.ai.infrastructure.StatusDisplayAdapter;
 import com.aimobs.network.MessageService;
 import com.aimobs.network.WebSocketService;
 import com.aimobs.network.application.MessageParser;
@@ -250,5 +260,84 @@ public class ServiceFactory {
      */
     public static CommandRoutingService createTestableCommandRoutingService(EntityLookupService entityLookup) {
         return new CommandRouter(entityLookup);
+    }
+
+    /**
+     * Create feedback service with injected dependencies.
+     * Returns interface, constructs concrete implementation.
+     */
+    public static FeedbackService createFeedbackService(EntityLookupService entityLookupService, MessageService messageService) {
+        ParticleAdapter particleAdapter = new MinecraftParticleAdapter(entityLookupService);
+        AudioAdapter audioAdapter = new MinecraftAudioAdapter(entityLookupService);
+        StatusDisplayAdapter statusDisplayAdapter = new MinecraftStatusDisplayAdapter(entityLookupService);
+        
+        ParticleService particleService = new ParticleCoordinator(particleAdapter);
+        AudioService audioService = new AudioCoordinator(audioAdapter);
+        StatusDisplayService statusDisplayService = new StatusDisplayCoordinator(statusDisplayAdapter);
+        
+        return new FeedbackCoordinator(particleService, audioService, statusDisplayService, messageService);
+    }
+
+    /**
+     * Create particle service with injected dependencies.
+     * Returns interface, constructs concrete implementation.
+     */
+    public static ParticleService createParticleService(EntityLookupService entityLookupService) {
+        ParticleAdapter particleAdapter = new MinecraftParticleAdapter(entityLookupService);
+        return new ParticleCoordinator(particleAdapter);
+    }
+
+    /**
+     * Create audio service with injected dependencies.
+     * Returns interface, constructs concrete implementation.
+     */
+    public static AudioService createAudioService(EntityLookupService entityLookupService) {
+        AudioAdapter audioAdapter = new MinecraftAudioAdapter(entityLookupService);
+        return new AudioCoordinator(audioAdapter);
+    }
+
+    /**
+     * Create status display service with injected dependencies.
+     * Returns interface, constructs concrete implementation.
+     */
+    public static StatusDisplayService createStatusDisplayService(EntityLookupService entityLookupService) {
+        StatusDisplayAdapter statusDisplayAdapter = new MinecraftStatusDisplayAdapter(entityLookupService);
+        return new StatusDisplayCoordinator(statusDisplayAdapter);
+    }
+
+    /**
+     * Create testable feedback service for testing.
+     * This is our seam - we can substitute test doubles.
+     */
+    public static FeedbackService createTestableFeedbackService(
+            ParticleService particleService,
+            AudioService audioService,
+            StatusDisplayService statusDisplayService,
+            MessageService messageService) {
+        return new FeedbackCoordinator(particleService, audioService, statusDisplayService, messageService);
+    }
+
+    /**
+     * Create testable particle service for testing.
+     * This is our seam - we can substitute test doubles.
+     */
+    public static ParticleService createTestableParticleService(ParticleAdapter particleAdapter) {
+        return new ParticleCoordinator(particleAdapter);
+    }
+
+    /**
+     * Create testable audio service for testing.
+     * This is our seam - we can substitute test doubles.
+     */
+    public static AudioService createTestableAudioService(AudioAdapter audioAdapter) {
+        return new AudioCoordinator(audioAdapter);
+    }
+
+    /**
+     * Create testable status display service for testing.
+     * This is our seam - we can substitute test doubles.
+     */
+    public static StatusDisplayService createTestableStatusDisplayService(StatusDisplayAdapter statusDisplayAdapter) {
+        return new StatusDisplayCoordinator(statusDisplayAdapter);
     }
 }

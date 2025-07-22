@@ -10,6 +10,7 @@ import net.minecraft.server.world.ServerWorld;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
+import java.util.UUID;
 
 /**
  * Infrastructure implementation of EntityLookupService.
@@ -98,5 +99,23 @@ public class MinecraftEntityLookupService implements EntityLookupService {
         }
         
         return count;
+    }
+    
+    @Override
+    public AiControlledWolfEntity findWolfById(UUID wolfId) {
+        if (wolfId == null || world == null) {
+            return null;
+        }
+        
+        // Search through all entities for the specific wolf UUID
+        for (Entity entity : world.iterateEntities()) {
+            if (entity instanceof AiControlledWolfEntity wolf) {
+                if (wolf.getUuid().equals(wolfId)) {
+                    return wolf;
+                }
+            }
+        }
+        
+        return null;
     }
 }

@@ -1,6 +1,7 @@
 package com.aimobs.entity.ai.core;
 
 import net.minecraft.util.math.Vec3d;
+import java.util.UUID;
 
 /**
  * Interface representing a target entity for interaction commands.
@@ -26,6 +27,11 @@ public interface TargetEntity {
      * @return A unique identifier for this entity
      */
     String getEntityId();
+    
+    /**
+     * @return A unique UUID for this entity (for feedback system)
+     */
+    UUID getEntityUuid();
     
     /**
      * @return The type of entity (for display/logging purposes)

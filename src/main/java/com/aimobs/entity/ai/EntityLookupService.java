@@ -1,9 +1,11 @@
 package com.aimobs.entity.ai;
 
 import com.aimobs.entity.ai.core.EntityId;
+import com.aimobs.entity.AiControlledWolfEntity;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service contract for finding and resolving command receivers.
@@ -46,4 +48,13 @@ public interface EntityLookupService {
      * @return Number of available receivers
      */
     int getAvailableEntityCount();
+    
+    /**
+     * Finds a specific AI wolf by its UUID.
+     * Used by feedback system to locate wolves for visual/audio effects.
+     * 
+     * @param wolfId The unique identifier of the wolf
+     * @return The wolf entity, or null if not found
+     */
+    AiControlledWolfEntity findWolfById(UUID wolfId);
 }
